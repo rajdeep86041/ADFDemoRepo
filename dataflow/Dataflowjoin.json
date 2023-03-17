@@ -1,0 +1,262 @@
+{
+	"name": "Dataflowjoin",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Employee",
+						"type": "DatasetReference"
+					},
+					"name": "employeedata"
+				},
+				{
+					"dataset": {
+						"referenceName": "Department",
+						"type": "DatasetReference"
+					},
+					"name": "department"
+				},
+				{
+					"dataset": {
+						"referenceName": "Json1",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "output",
+						"type": "DatasetReference"
+					},
+					"name": "sink1",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureDataLakeStorage1",
+						"type": "LinkedServiceReference"
+					}
+				},
+				{
+					"dataset": {
+						"referenceName": "output",
+						"type": "DatasetReference"
+					},
+					"name": "ITfile",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureDataLakeStorage1",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "sort1"
+				},
+				{
+					"name": "pivot1"
+				},
+				{
+					"name": "aggregate2"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "select3"
+				},
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "window1"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "flatten1"
+				},
+				{
+					"name": "rank1"
+				},
+				{
+					"name": "cast1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EMPLOYEE_ID as string,",
+				"          FIRST_NAME as string,",
+				"          LAST_NAME as string,",
+				"          EMAIL as string,",
+				"          PHONE_NUMBER as string,",
+				"          HIRE_DATE as string,",
+				"          JOB_ID as string,",
+				"          SALARY as integer '000',",
+				"          COMMISSION_PCT as string,",
+				"          MANAGER_ID as string,",
+				"          DEPARTMENT_ID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> employeedata",
+				"source(output(",
+				"          DEPARTMENT_ID as string,",
+				"          Department_Name as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> department",
+				"source(output(",
+				"          Employees as (userId as string, jobTitleName as string, firstName as string, lastName as string, preferredFullName as string, employeeCode as string, region as string, phoneNumber as string, emailAddress as string)[]",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'singleDocument') ~> source1",
+				"employeedata, department join(employeedata@DEPARTMENT_ID == department@DEPARTMENT_ID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 filter(greater(SALARY,5000),",
+				"     partitionBy('hash', 1)) ~> filter1",
+				"filter1 aggregate(groupBy(department@DEPARTMENT_ID,",
+				"          MANAGER_ID),",
+				"     {SUM OF SALARY IN DEPARTMENT} = sum(SALARY)) ~> aggregate1",
+				"derivedColumn2, filter1 join(aggregate1@DEPARTMENT_ID == department@DEPARTMENT_ID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2 split(equals(department@DEPARTMENT_ID,'50'),",
+				"     equals(department@DEPARTMENT_ID,'40'),",
+				"     disjoint: false) ~> split1@(departmentIT, departmentsales, restofthedepatment)",
+				"split1@departmentIT derive(FIRST_NAME = initCap(FIRST_NAME)) ~> derivedColumn1",
+				"aggregate1 derive(MANAGER_ID = iif(isNull(MANAGER_ID), 'Unknown', MANAGER_ID)) ~> derivedColumn2",
+				"employeedata sort(asc(HIRE_DATE, true),",
+				"     partitionBy('hash', 1)) ~> sort1",
+				"select2 pivot(groupBy(DEPARTMENT_ID),",
+				"     pivotBy(MANAGER_ID),",
+				"     {_Employee} = count(EMPLOYEE_ID_SELECt),",
+				"     columnNaming: 'Manager$N$V',",
+				"     lateral: true) ~> pivot1",
+				"select2 aggregate(groupBy(DEPARTMENT_ID,",
+				"          MANAGER_ID),",
+				"     column1 = count(EMPLOYEE_ID_SELECt)) ~> aggregate2",
+				"sort1 select(mapColumn(",
+				"          EMPLOYEE_ID_SELECt = EMPLOYEE_ID,",
+				"          FIRST_NAME,",
+				"          LAST_NAME,",
+				"          EMAIL,",
+				"          PHONE_NUMBER,",
+				"          HIRE_DATE,",
+				"          JOB_ID,",
+				"          SALARY,",
+				"          COMMISSION_PCT,",
+				"          MANAGER_ID,",
+				"          DEPARTMENT_ID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"sort1 select(mapColumn(",
+				"          FIRST_NAME,",
+				"          SALARY,",
+				"          MANAGER_ID,",
+				"          DEPARTMENT_ID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 keyGenerate(output(EMP_ID as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"surrogateKey1 window(over(DEPARTMENT_ID),",
+				"     asc(SALARY, true),",
+				"     AVGSALARY = avg(SALARY),",
+				"          DENSERANK = denseRank()) ~> window1",
+				"employeedata alterRow(deleteIf(DEPARTMENT_ID=='50'),",
+				"     updateIf(DEPARTMENT_ID=='40')) ~> alterRow1",
+				"source1 foldDown(unroll(Employees),",
+				"     mapColumn(",
+				"          userId = Employees.userId,",
+				"          jobTitleName = Employees.jobTitleName,",
+				"          firstName = Employees.firstName,",
+				"          lastName = Employees.lastName,",
+				"          preferredFullName = Employees.preferredFullName,",
+				"          employeeCode = Employees.employeeCode,",
+				"          region = Employees.region,",
+				"          phoneNumber = Employees.phoneNumber,",
+				"          emailAddress = Employees.emailAddress",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flatten1",
+				"window1 rank(asc(DEPARTMENT_ID, true),",
+				"     asc(SALARY, true),",
+				"     output(RANK as long)) ~> rank1",
+				"rank1 cast(output(",
+				"          FIRST_NAME as string,",
+				"          SALARY as integer '000',",
+				"          MANAGER_ID as integer '000',",
+				"          DENSERANK as integer '000'",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"join2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['employee_department'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {SUM OF SALARY IN DEPARTMENT},",
+				"          EMPLOYEE_ID,",
+				"          FIRST_NAME,",
+				"          LAST_NAME,",
+				"          EMAIL,",
+				"          PHONE_NUMBER,",
+				"          HIRE_DATE,",
+				"          JOB_ID,",
+				"          SALARY,",
+				"          COMMISSION_PCT,",
+				"          MANAGER_ID = employeedata@MANAGER_ID,",
+				"          DEPARTMENT_ID = employeedata@DEPARTMENT_ID,",
+				"          DEPARTMENT_ID = department@DEPARTMENT_ID,",
+				"          Department_Name",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> sink1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> ITfile"
+			]
+		}
+	}
+}

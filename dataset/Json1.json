@@ -1,0 +1,59 @@
+{
+	"name": "Json1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "employees.json",
+				"fileSystem": "input"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"Employees": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"userId": {
+								"type": "string"
+							},
+							"jobTitleName": {
+								"type": "string"
+							},
+							"firstName": {
+								"type": "string"
+							},
+							"lastName": {
+								"type": "string"
+							},
+							"preferredFullName": {
+								"type": "string"
+							},
+							"employeeCode": {
+								"type": "string"
+							},
+							"region": {
+								"type": "string"
+							},
+							"phoneNumber": {
+								"type": "string"
+							},
+							"emailAddress": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

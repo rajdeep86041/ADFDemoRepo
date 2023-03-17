@@ -1,0 +1,28 @@
+{
+	"name": "powerquery1 merge",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "Employee",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee",
+					"dataset": {
+						"referenceName": "Employee",
+						"type": "DatasetReference"
+					}
+				},
+				{
+					"name": "Department",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Department",
+					"dataset": {
+						"referenceName": "Department",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared Employee = let AdfDoc = AzureStorage.DataLakeContents(\"https://adletlproject.dfs.core.windows.net/input/employees.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared Department = let AdfDoc = AzureStorage.DataLakeContents(\"https://adletlproject.dfs.core.windows.net/input/Department.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared UserQuery = let Source = #\"Employee\",\r\n  #\"Merged queries\" = Table.NestedJoin(Source, {\"DEPARTMENT_ID\"}, Department, {\"DEPARTMENT_ID\"}, \"Department\", JoinKind.FullOuter),\r\n  #\"Removed columns\" = Table.RemoveColumns(#\"Merged queries\", {\"HIRE_DATE\"}),\r\n  #\"Expanded Department\" = Table.ExpandTableColumn(#\"Removed columns\", \"Department\", {\"DEPARTMENT_ID\", \"Department_Name\"}, {\"DEPARTMENT_ID.1\", \"Department_Name\"}),\r\n  #\"Changed column type\" = Table.TransformColumnTypes(#\"Expanded Department\", {{\"EMPLOYEE_ID\", Int64.Type}, {\"FIRST_NAME\", type text}, {\"LAST_NAME\", type text}, {\"EMAIL\", type text}, {\"PHONE_NUMBER\", type text}, {\"JOB_ID\", type text}, {\"SALARY\", Int64.Type}, {\"COMMISSION_PCT\", type text}, {\"MANAGER_ID\", Int64.Type}, {\"DEPARTMENT_ID\", Int64.Type}, {\"DEPARTMENT_ID.1\", Int64.Type}, {\"Department_Name\", type text}}),\r\n  #\"Replaced value\" = Table.ReplaceValue(#\"Changed column type\", null, 0, Replacer.ReplaceValue, {\"DEPARTMENT_ID.1\"}),\r\n  #\"Replaced value 1\" = Table.ReplaceValue(#\"Replaced value\", null, \"unknown\", Replacer.ReplaceValue, {\"Department_Name\"}) in #\"Replaced value 1\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

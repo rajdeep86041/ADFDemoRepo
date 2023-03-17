@@ -1,0 +1,20 @@
+{
+	"name": "powerquery1 group by",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "Employee",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> Employee",
+					"dataset": {
+						"referenceName": "Employee",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared Employee = let AdfDoc = AzureStorage.DataLakeContents(\"https://adletlproject.dfs.core.windows.net/input/employees.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared UserQuery = let Source = #\"Employee\",\r\n  #\"Changed column type\" = Table.TransformColumnTypes(Source, {{\"EMPLOYEE_ID\", Int64.Type}, {\"FIRST_NAME\", type text}, {\"LAST_NAME\", type text}, {\"EMAIL\", type text}, {\"PHONE_NUMBER\", type text}, {\"HIRE_DATE\", type date}, {\"JOB_ID\", type text}, {\"SALARY\", Int64.Type}, {\"COMMISSION_PCT\", type text}, {\"MANAGER_ID\", Int64.Type}, {\"DEPARTMENT_ID\", Int64.Type}}),\r\n  #\"Grouped rows\" = Table.Group(#\"Changed column type\", {\"MANAGER_ID\", \"DEPARTMENT_ID\"}, {{\"AVG Salary\", each List.Average([SALARY]), type nullable number}}),\r\n  #\"Replaced value\" = Table.ReplaceValue(#\"Grouped rows\", null, 0, Replacer.ReplaceValue, {\"MANAGER_ID\"}) in #\"Replaced value\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}

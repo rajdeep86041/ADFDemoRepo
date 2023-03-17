@@ -1,0 +1,102 @@
+{
+	"name": "Table_Name",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServerParameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"Servername": {
+					"value": "@dataset().Servernamedataset",
+					"type": "Expression"
+				},
+				"Databasename": {
+					"value": "@dataset().Dbdataset",
+					"type": "Expression"
+				},
+				"Username": {
+					"value": "@dataset().Usernamedataset",
+					"type": "Expression"
+				},
+				"Password": {
+					"value": "@dataset().Passworddataset",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"Dbdataset": {
+				"type": "string"
+			},
+			"Usernamedataset": {
+				"type": "string"
+			},
+			"Servernamedataset": {
+				"type": "string"
+			},
+			"Passworddataset": {
+				"type": "string"
+			},
+			"Tablenamedataset": {
+				"type": "string"
+			},
+			"Schemaname": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "AddressID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "AddressLine1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AddressLine2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "City",
+				"type": "nvarchar"
+			},
+			{
+				"name": "StateProvinceID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PostalCode",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SpatialLocation",
+				"type": "geography"
+			},
+			{
+				"name": "rowguid",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "ModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().Schemaname",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().Tablenamedataset",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

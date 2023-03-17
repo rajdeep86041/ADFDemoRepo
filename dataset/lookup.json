@@ -1,0 +1,13 @@
+{
+	"name": "lookup",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServerAdventureWorks2019",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
