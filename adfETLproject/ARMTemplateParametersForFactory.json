@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adfETLproject"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
+		"AzureDataLakeStorage1_accountKey": {
+			"value": ""
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
+		"SqlServerAdventureWorks2019_connectionString": {
+			"value": ""
+		},
+		"SqlServerParameterized_connectionString": {
+			"value": "Integrated Security=False;Data Source=@{linkedService().Servername};Initial Catalog=@{linkedService().Databasename};User ID=@{linkedService().Username};Password=@{linkedService().Password}"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://adletlproject.dfs.core.windows.net/"
+		},
+		"RestService1_properties_typeProperties_url": {
+			"value": "https://pokeapi.co/api/v2/pokemon"
+		},
+		"RestService2_properties_typeProperties_url": {
+			"value": "ttps://pokeapi.co/api/v2/poke"
+		}
+	}
+}
